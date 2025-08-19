@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>내 분석 기록 - CoTDeX</title>
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <style>
+        body { background: #f7f9fc; color: #222; font-family: 'Arial', sans-serif; }
+        .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 30px 40px; }
+        h1 { font-size: 26px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; }
+        th, td { padding: 12px 8px; border-bottom: 1px solid #eee; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        th { background: #f0f4fa; }
+        tr:hover { background: #f7f7f7; }
+        .graph-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+        .type-badge { padding: 2px 8px; border-radius: 8px; font-size: 13px; color: #fff; }
+        .type-main { background: #007bff; }
+        .type-single { background: #28a745; }
+        .type-sub { background: #ff9800; }
+        .disease-names { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'visualization_home' %}" class="logo">CoTDeX</a>
+        <div class="nav-buttons">
+            {% if user.is_authenticated %}
+                <span>{{ user.username }}님 환영합니다!</span>
+                <button onclick="location.href='{% url 'logout' %}'">로그아웃</button>
+            {% else %}
+                <button onclick="location.href='{% url 'login' %}'">로그인</button>
+                <button onclick="location.href='{% url 'signup' %}'">회원가입</button>
+            {% endif %}
+        </div>
+    </header>
+    <div class="container">
+        <h1>내 분석 기록</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>제목</th>
+                    <th>그래프 타입</th>
+                    <th>저장일</th>
+                    <th>Follow-Up</th>
+                    <th>RR Min</th>
+                    <th>RR Max</th>
+                    <th>ChiSq P</th>
+                    <th>Fisher P</th>
+                    <th>질병 이름</th>
+                    <th>메모</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in graph_list %}
+                <tr>
+                    <td><span class="graph-link" onclick="goToGraph('{{ g.graph_type }}', '{{ g.disease_names|escapejs }}', '{{ g.fu }}', '{{ g.rr_min }}', '{{ g.rr_max }}', '{{ g.chisq_p }}', '{{ g.fisher_p }}')">{{ g.title }}</span></td>
+                    <td><span class="type-badge type-{{ g.graph_type }}">{{ g.graph_type|title }}</span></td>
+                    <td>{{ g.created_at|date:'Y-m-d H:i' }}</td>
+                    <td>{{ g.fu }}</td>
+                    <td>{{ g.rr_min }}</td>
+                    <td>{{ g.rr_max }}</td>
+                    <td>{{ g.chisq_p }}</td>
+                    <td>{{ g.fisher_p }}</td>
+                    <td class="disease-names" title="{{ g.disease_names }}">{{ g.disease_names }}</td>
+                    <td>{{ g.memo }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10">저장된 분석 기록이 없습니다.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+    function goToGraph(type, disease_names, fu, rr_min, rr_max, chisq_p, fisher_p) {
+        let url = '';
+        if (type === 'main') {
+            url = `/network/graph/?follow_up=${fu}&rr_values_min=${rr_min}&rr_values_max=${rr_max}&chisq_p_values=${chisq_p}&fisher_p_values=${fisher_p}`;
+        } else if (type === 'single') {
+            url = `/network/single_disease_graph/?disease=${encodeURIComponent(disease_names)}&follow_up=${fu}&rr_values_min=${rr_min}&rr_values_max=${rr_max}&chisq_p_values=${chisq_p}&fisher_p_values=${fisher_p}`;
+        } else if (type === 'sub') {
+            url = `/network/sub_disease_graph/?diseases=${encodeURIComponent(disease_names)}&follow_up=${fu}&rr_values_min=${rr_min}&rr_values_max=${rr_max}&chisq_p_values=${chisq_p}&fisher_p_values=${fisher_p}`;
+        }
+        if (url) window.open(url, '_blank');
+    }
+    </script>
+</body>
+</html> 

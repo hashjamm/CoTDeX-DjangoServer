@@ -1,0 +1,133 @@
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: #1f2937; /* 어두운 네이비 */
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 2000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-decoration: none;
+    color: white;
+}
+
+.logo:visited,
+.logo:hover,
+.logo:active {
+    color: white;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-buttons span {
+    margin-right: 10px;
+}
+
+.nav-buttons button {
+    background: white;
+    color: #1f2937;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.nav-buttons button:hover {
+    background: #f3f4f6;
+}
+
+body {
+    display: flex;
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    padding-top: 60px;
+}
+#cy {
+    flex: 1;
+    height: 100%;
+}
+#node-info {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    display: none;
+    font-size: 14px;
+    max-width: 250px;
+    padding-top: 60px;
+}
+#pubmed-results {
+    position: absolute;
+    top: 150px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    display: none;
+    font-size: 14px;
+    max-width: 300px;
+    max-height: 400px;
+    overflow-y: scroll;
+}
+#graph-area {
+    margin-top: 20px;
+}
+.graph-box {
+    margin-bottom: 30px;
+    background: #f7f7f7;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+@media (max-width: 1500px) {
+    #disease-list {
+        position: fixed;
+        left: -320px;
+        top: 60px;
+        height: calc(100vh - 60px);
+        transition: left 0.3s ease-in-out;
+        z-index: 1500;
+    }
+    #disease-list.show {
+        left: 0;
+    }
+    #cy {
+        flex: 1;
+        width: 100%;
+    }
+    .toggle-left-button {
+        position: fixed;
+        top: 70px;
+        left: 10px;
+        z-index: 2000;
+        background-color: #1f2937;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        cursor: pointer;
+        font-size: 13px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+}

@@ -1,0 +1,175 @@
+<!DOCTYPE html> 
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.0/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/layout-base/layout-base.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cose-base/cose-base.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose/cytoscape-fcose.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-cose-bilkent/cytoscape-cose-bilkent.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pubmedbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/graph_page.css' %}">
+
+    <script>
+        window.graphData = {
+          nodes: {{ nodes|safe }},
+          edges: {{ edges|safe }},
+          follow_up: {{ follow_up|default:"1" }},
+          rr_min: {{ request.GET.rr_values_min|default:"0"|safe }},
+          rr_max: {{ request.GET.rr_values_max|default:"2"|safe }},
+          chisq: {{ request.GET.chisq_p_values|default:"0.05"|safe }},
+          fisher: {{ request.GET.fisher_p_values|default:"0.05"|safe }}
+        };
+      </script>
+      
+</head>
+<body>
+    <header>
+        <a href="{% url 'visualization_home' %}" class="logo">CoTDeX</a>
+        <div class="nav-buttons">
+            {% if user.is_authenticated %}
+                <span>{{ user.username }}님 환영합니다!</span>
+                <button onclick="location.href='{% url 'mypage' %}'">마이페이지</button>
+                <button onclick="location.href='{% url 'logout' %}'">로그아웃</button>
+            {% else %}
+                <button onclick="location.href='{% url 'login' %}'">로그인</button>
+                <button onclick="location.href='{% url 'signup' %}'">회원가입</button>
+            {% endif %}
+        </div>
+        
+    </header>
+    <button class="toggle-left-button" onclick="toggleSidebar()">☰ 질병 목록</button>
+    <div id="disease-list" style="display: flex; flex-direction: column; height: 100vh;">
+        <div class="sidebar-section" style="flex: 0 0 75%; min-height: 80px; max-height: 80%; overflow-y: auto;">
+            <h3>질병 리스트</h3>
+            <input type="text" id="search-bar" placeholder="질병 코드를 입력하세요" />
+            <ul id="disease-items" style="height: 70%; overflow-y: auto;">
+                {% for disease in disease_list %}
+                <li class="disease-item" data-code="{{ disease.code }}">
+                    <b>{{ disease.code }}</b><br/> {{ disease.Korean }}<hr>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <!-- <div class="sidebar-section" style="flex: 0 0 35%; min-height: 60px; max-height: 40%; overflow-y: auto; display: flex; flex-direction: column; margin-bottom: 10px;">
+            <h4>ICD-10 대분류</h4>
+            <div id="group-filters" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-bottom: 10px;">        
+                {% for group in icd10_groups %}
+                <label style="font-size: 14px;">
+                    <input type="checkbox" class="group-toggle" data-group="{{ group }}" checked> {{ group }}
+                </label>
+                {% endfor %}
+            </div>
+        </div> -->
+        <div style="flex: 0 0 30%; min-height: 60px; max-height: 0%; display: flex; flex-direction: row; gap: 8px; justify-content: center; align-items: center; padding-bottom: 15px;">
+            <button onclick="window.history.back()" style="width:45%;background:#007bff;color:#fff;padding:8px 0;border:none;border-radius:4px;font-size:14px;cursor:pointer;">뒤로 가기</button>
+            <button id="save-graph-btn" style="width:45%;background:#007bff;color:#fff;padding:8px 0;border:none;border-radius:4px;font-size:14px;cursor:pointer;">그래프 저장하기</button>
+        </div>
+    </div>
+
+    <div id="cy"></div>
+    <div id="info-sidebar">
+        <div class="info-sidebar-content">
+            <h3 id="sidebar-title">상세 정보</h3>
+            <div id="sidebar-body">
+                <p><strong>ICD-10:</strong> <span id="node-icd10"></span></p>
+                <p><strong>Group:</strong> <span id="node-group"></span></p>
+
+                <div id="graph-area">
+                    <div class="graph-box">
+                    <h4>1. 연령 분포</h4>
+                    <canvas id="ageChart"></canvas>
+                    </div>
+                    <div class="graph-box">
+                    <h4>2. 소득 분포</h4>
+                    <canvas id="incomeChart"></canvas>
+                    </div>
+                    <div class="graph-box">
+                    <h4>3. 지역 분포</h4>
+                    <canvas id="regionChart"></canvas>
+                    </div>
+                    <div class="graph-box">
+                    <h4>4. 성별 비율</h4>
+                    <canvas id="genderPieChart"></canvas>
+                    </div>
+                    <div class="graph-box">
+                    <h4>5. 연령/성별 분포</h4>
+                    <canvas id="ageGenderChart"></canvas>
+                    </div>
+                    <div class="graph-box">
+                    <h4>6. 소득/성별 분포</h4>
+                    <canvas id="incomeGenderChart"></canvas>
+                    </div>
+                    <div class="graph-box">
+                    <h4>7. 지역/성별 분포</h4>
+                    <canvas id="regionGenderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="node-info"></div>
+    <div id="pubmed-results"></div>
+
+<!-- 논문 보기 슬라이드 하단 바 -->
+<div id="pubmed-slide">
+    <div id="pubmed-slide-header">
+        <span>📚 관련 논문</span>
+        <button onclick="closePubmed()">닫기</button>
+    </div>
+    <div id="pubmed-slide-body">
+        <p>논문 내용을 불러오는 중...</p>
+    </div>
+</div>
+<script src="{% static 'js/graph_page.js' %}?v=20250715"></script>
+<script>
+document.getElementById('save-graph-btn').addEventListener('click', function() {
+    const title = prompt('그래프 제목을 입력하세요:');
+    if (!title) return;
+    const memo = prompt('그래프에 대한 메모를 입력하세요 (선택):') || '';
+    // 필터값 추출
+    const fu = window.graphData.follow_up;
+    const rr_min = window.graphData.rr_min;
+    const rr_max = window.graphData.rr_max;
+    const chisq_p = window.graphData.chisq;
+    const fisher_p = window.graphData.fisher;
+    // 질병 이름 리스트 추출
+    let disease_names = [];
+    document.querySelectorAll('.disease-item').forEach(item => {
+        disease_names.push(item.getAttribute('data-code'));
+    });
+    fetch('/network/save_graph/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            title,
+            memo,
+            fu,
+            rr_min,
+            rr_max,
+            chisq_p,
+            fisher_p,
+            disease_names: disease_names.join(','),
+            graph_type: 'main'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('그래프가 저장되었습니다!');
+        } else {
+            alert('저장 실패: ' + (data.error || '오류'));
+        }
+    });
+});
+</script>
+
+</body>
+
+</html>

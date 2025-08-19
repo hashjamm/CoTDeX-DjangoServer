@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지 - CoTDeX</title>
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            padding-top: 80px;
+
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+        .info-box {
+            margin-bottom: 30px;
+        }
+        .info-box p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+        }
+        .button-group button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button-group button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'visualization_home' %}" class="logo">CoTDeX</a>
+        <div class="nav-buttons">
+          {% if user.is_authenticated %}
+            <span>{{ user.username }}님 환영합니다!</span>
+            <button onclick="location.href='{% url 'logout' %}'">로그아웃</button>
+          {% else %}
+            <button onclick="location.href='{% url 'login' %}'">로그인</button>
+            <button onclick="location.href='{% url 'signup' %}'">회원가입</button>
+          {% endif %}
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="info-box">
+            <h2>회원 정보</h2>
+            <p><strong>아이디:</strong> {{ user.username }}</p>
+            <p><strong>이메일:</strong> {{ user.email }}</p>
+            <!-- 필요시 기타 정보 추가 가능 -->
+        </div>
+
+        <div class="info-box">
+            <h2>기능</h2>
+            <br/>
+            <div class="button-group">
+                <button onclick="location.href='/network/main_select/'">Main Network Graph</button>
+                <button onclick="location.href='/network/sub_select/'">Sub Network Graph</button>
+                <button onclick="location.href='/network/disease_select/'">Single Network Graph</button>
+                <button onclick="location.href='/network/analysis_history/'">내 분석 기록</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

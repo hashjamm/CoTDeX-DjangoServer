@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <title>Sub Network 선택</title>
+  <link rel="stylesheet" href="{% static 'css/header.css' %}">
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f6fa;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 18px 20px;
+      width: 90%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 18px;
+      color: #007BFF;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .dual-list-container {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .list-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-box input {
+      padding: 5px;
+      margin-bottom: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .disease-list {
+      flex: 1;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 6px;
+      background: #fafafa;
+      font-size: 13px;
+    }
+
+    .disease-item {
+      padding: 5px 8px;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      transition: all 0.2s ease;
+      font-size: 13px;
+    }
+
+    .disease-item.selected {
+      background-color: #007BFF;
+      color: white;
+      font-weight: bold;
+      border-color: #0056b3;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 5px;
+      margin: 0 2px;
+      border: none;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .middle-buttons {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .middle-buttons button {
+      margin: 6px;
+      padding: 6px;
+      font-size: 14px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    #submit-button {
+      margin-top: 18px;
+      padding: 8px 18px;
+      font-size: 14px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="{% url 'visualization_home' %}" class="logo">CoTDeX</a>
+    <div class="nav-buttons">
+        {% if user.is_authenticated %}
+            <span>{{ user.username }}님 환영합니다!</span>
+            <button onclick="location.href='{% url 'mypage' %}'">마이페이지</button>
+            <button onclick="location.href='{% url 'logout' %}'">로그아웃</button>
+        {% else %}
+            <button onclick="location.href='{% url 'login' %}'">로그인</button>
+            <button onclick="location.href='{% url 'signup' %}'">회원가입</button>
+        {% endif %}
+    </div>
+</header>
+  <div class="container">
+    <h2>Sub Network 질병 선택</h2>
+
+    <div class="dual-list-container">
+      <!-- 왼쪽 박스 -->
+      <div class="list-box">
+        <input type="text" id="left-search" placeholder="Disease Search" onkeyup="filterList('left')">
+        <div class="disease-list" id="left-list"></div>
+        <div class="button-group">
+          <button onclick="selectAll('left')">전체 선택</button>
+          <button onclick="deselectAll('left')">전체 해제</button>
+        </div>
+      </div>
+
+      <!-- 이동 버튼 -->
+      <div class="middle-buttons">
+        <button onclick="moveRight()">→</button>
+        <button onclick="moveLeft()">←</button>
+      </div>
+
+      <!-- 오른쪽 박스 -->
+      <div class="list-box">
+        <div style="height: 27px; margin-bottom: 6px;"></div>
+        <div class="disease-list" id="right-list"></div>
+        <div class="button-group">
+          <button onclick="selectAll('right')">전체 선택</button>
+          <button onclick="deselectAll('right')">전체 해제</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="submit-button" onclick="submitForm()">그래프 보기</button>
+  </div>
+
+  <script>
+    const allDiseases = {{ disease_list|safe }};
+    let leftDiseases = [...allDiseases];
+    let rightDiseases = [];
+    let selectedLeft = new Set();
+    let selectedRight = new Set();
+
+    function renderList(side) {
+      const container = document.getElementById(`${side}-list`);
+      container.innerHTML = "";
+      const data = side === 'left' ? leftDiseases : rightDiseases;
+      const selected = side === 'left' ? selectedLeft : selectedRight;
+      data.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'disease-item';
+        if (selected.has(d.node_code)) div.classList.add('selected');
+        div.textContent = `${d.node_code} - ${d.Korean}`;
+        div.onclick = () => {
+          if (selected.has(d.node_code)) selected.delete(d.node_code);
+          else selected.add(d.node_code);
+          renderList(side);
+        };
+        container.appendChild(div);
+      });
+    }
+
+    function filterList(side) {
+      const query = document.getElementById(`${side}-search`).value.toLowerCase();
+      const container = document.getElementById(`${side}-list`).children;
+      for (let item of container) {
+        item.style.display = item.textContent.toLowerCase().includes(query) ? 'block' : 'none';
+      }
+    }
+
+    function selectAll(side) {
+      const data = side === 'left' ? leftDiseases : rightDiseases;
+      const selected = side === 'left' ? selectedLeft : selectedRight;
+      data.forEach(d => selected.add(d.node_code));
+      renderList(side);
+    }
+
+    function deselectAll(side) {
+      if (side === 'left') selectedLeft.clear();
+      else selectedRight.clear();
+      renderList(side);
+    }
+
+    function moveRight() {
+      const moving = leftDiseases.filter(d => selectedLeft.has(d.node_code));
+      rightDiseases.push(...moving);
+      leftDiseases = leftDiseases.filter(d => !selectedLeft.has(d.node_code));
+      selectedLeft.clear();
+      renderList('left');
+      renderList('right');
+    }
+
+    function moveLeft() {
+      const moving = rightDiseases.filter(d => selectedRight.has(d.node_code));
+      leftDiseases.push(...moving);
+      rightDiseases = rightDiseases.filter(d => !selectedRight.has(d.node_code));
+      selectedRight.clear();
+      renderList('left');
+      renderList('right');
+    }
+
+    function submitForm() {
+      if (rightDiseases.length === 0) {
+        alert("질병을 하나 이상 선택해주세요.");
+        return;
+      }
+
+      const diseases = rightDiseases.map(d => d.node_code).join(',');
+      console.log("전송할 질병 목록:", diseases);  // 여기 추가
+
+      fetch(`/network/check_disease_connection/?diseases=${diseases}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.connected) {
+            const url = `/network/sub_disease_graph/?diseases=${diseases}` +
+                        `&follow_up=${data.follow_up}&rr_values_min=${data.rr_min}` +
+                        `&rr_values_max=${data.rr_max}&chisq_p_values=${data.chisq_max}` +
+                        `&fisher_p_values=${data.fisher_max}`;
+            window.location.href = url;
+          } else {
+            alert("연결 정보 없음");
+          }
+        })
+        .catch(err => {
+          console.error("연결 여부 확인 실패:", err);
+          alert("서버 오류가 발생했습니다.");
+        });
+    }
+
+    window.onload = () => {
+      renderList('left');
+      renderList('right');
+    };
+  </script>
+</body>
+</html>

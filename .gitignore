@@ -1,0 +1,22 @@
+# Database
+db.sqlite3
+
+# Data & Model
+*.csv
+*.pkl
+*.xlsx
+
+# Archives & Documents
+*.zip
+*.pdf
+*.gz
+*.tar
+
+# Python
+__pycache__/
+
+# Local Settings (민감 정보 보호)
+settings.py
+
+# 기타
+e.l

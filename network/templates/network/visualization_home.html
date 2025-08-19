@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoTDeX</title>
+    <link rel="stylesheet" href="{% static 'css/graph_page.css' %}">
+    <style>
+        body {
+            display: block !important;     /* graph_page.css의 flex 제거 */
+            padding-top: 0 !important;     /* header 내려주는 것도 제거 */
+            height: 100vh !important;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;   /* 세로 가운데 */
+            align-items: center;       /* 가로 가운데 */
+            height: 100vh;             /* 화면 전체 높이 */
+            text-align: center;
+        }
+        .main-buttons {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .main-buttons button {
+            padding: 20px 40px;
+            font-size: 18px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .main-buttons button:hover {
+            background-color: #0056b3;
+        }
+        h1.title {
+            color: #1f2937;
+            font-size: 38px;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+            font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+        }
+
+        .title .highlight {
+            color: #007BFF;
+            font-weight: 700;
+        }
+        .highlight {
+            color: #007BFF;
+            text-shadow: 0 0 4px rgba(45, 108, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">CoTDeX</div>
+        <div class="nav-buttons">
+            {% if user.is_authenticated %}
+                <span>{{ user.username }}님 환영합니다!</span>
+                <button onclick="location.href='{% url 'mypage' %}'">마이페이지</button>
+                <button onclick="location.href='{% url 'logout' %}'">로그아웃</button>
+            {% else %}
+                <button onclick="location.href='{% url 'login' %}'">로그인</button>
+                <button onclick="location.href='{% url 'signup' %}'">회원가입</button>
+            {% endif %}
+        </div>
+        
+    </header>
+
+    <div class="main-content">
+        <h1 class="title">
+            <span class="highlight">Co</span>hort-based 
+            <span class="highlight">T</span>emporal 
+            <span class="highlight">D</span>isease network 
+            <span class="highlight">Ex</span>ploration tool
+        </h1>
+        <br/><br/>
+        <div class="main-buttons">
+            <button onclick="location.href='/network/main_select/'">Main network</button>
+            <button onclick="location.href='/network/sub_select/'">Sub network</button>
+            <button onclick="location.href='/network/disease_select/'">Single network</button>
+        </div>
+    </div>
+</body>
+</html>

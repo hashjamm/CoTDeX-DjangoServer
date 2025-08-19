@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <title>Main Network 설정</title>
+  <link rel="stylesheet" href="{% static 'css/header.css' %}">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f6fa;
+      margin: 0;
+      padding-top: 120px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 380px;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #444;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: #007BFF;
+      outline: none;
+    }
+
+    .double-input {
+      display: flex;
+      gap: 10px;
+    }
+
+    .double-input input {
+      flex: 1;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="{% url 'visualization_home' %}" class="logo">CoTDeX</a>
+    <div class="nav-buttons">
+        {% if user.is_authenticated %}
+            <span>{{ user.username }}님 환영합니다!</span>
+            <button onclick="location.href='{% url 'mypage' %}'">마이페이지</button>
+            <button onclick="location.href='{% url 'logout' %}'">로그아웃</button>
+        {% else %}
+            <button onclick="location.href='{% url 'login' %}'">로그인</button>
+            <button onclick="location.href='{% url 'signup' %}'">회원가입</button>
+        {% endif %}
+    </div>
+</header>
+  <div class="container">
+    <h2>Main Network 필터 선택</h2>
+    <form action="/network/graph/" method="get">
+      
+      <div class="form-group">
+        <label for="follow_up">Follow-Up 기간 (1~10)</label>
+        <input type="number" id="follow_up" name="follow_up" min="1" max="10" required>
+      </div>
+
+      <div class="form-group">
+        <label>RR 값 범위</label>
+        <div class="double-input">
+          <input type="number" name="rr_values_min" step="0.01" value="0" required>
+          <input type="number" name="rr_values_max" step="0.01" value="2" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chisq_p_values">Chi-Square P-Value</label>
+        <select id="chisq_p_values" name="chisq_p_values">
+          <option value="0.5">≤ 0.5</option>
+          <option value="0.05">≤ 0.05</option>
+          <option value="0.005">≤ 0.005</option>
+          <option value="0.0001">≤ 0.0001</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fisher_p_values">Fisher P-Value</label>
+        <select id="fisher_p_values" name="fisher_p_values">
+          <option value="0.5">≤ 0.5</option>
+          <option value="0.05">≤ 0.05</option>
+          <option value="0.005">≤ 0.005</option>
+          <option value="0.0001">≤ 0.0001</option>
+        </select>
+      </div>
+
+      <button type="submit">그래프 보기</button>
+    </form>
+  </div>
+
+</body>
+</html>
